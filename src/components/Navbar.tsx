@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link as ScrollLink } from 'react-scroll';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,9 +11,10 @@ const Navbar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
-    { name: 'About Us', type: 'scroll' },
+    { name: 'About Us', type: 'scroll', to: 'about-us' },
+    { name: 'Services', type: 'scroll', to: 'services' },
     { name: 'Gallery', type: 'route', to: '/gallery' },
-    { name: 'Our Team', type: 'scroll' },
+    { name: 'Our Team', type: 'scroll', to: 'our-team' },
     { name: 'FAQ', type: 'route', to: '/faq' }
   ];
 

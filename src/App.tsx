@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import AboutSection from './components/AboutSection';
 import LatestSection from './components/LatestSection';
+import ServicesSection from './components/ServicesSection.tsx';
 import GalleryPage from './components/GalleryPage';
 import TeamSection from './components/TeamSection';
 import ContactSection from './components/ContactSection';
@@ -68,7 +69,7 @@ function App() {
               <HeroSection />
               <AboutSection />
               <LatestSection />
-              <GalleryPage />
+              <ServicesSection />
               <TeamSection />
               <ContactSection />
             </motion.div>

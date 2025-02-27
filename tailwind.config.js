@@ -32,6 +32,26 @@ export default {
         'xs': '375px',
         '3xl': '1920px',
       },
+      spacing: {
+        '1/1': '100%',
+        '4/3': '133.333333%',
+        '16/9': '177.777778%',
+      },
+      aspectRatio: {
+        '4/3': '4 / 3',
+        '16/9': '16 / 9',
+        '3/2': '3 / 2',
+      },
+      container: {
+        center: true,
+        padding: {
+          DEFAULT: '1rem',
+          sm: '2rem',
+          lg: '4rem',
+          xl: '5rem',
+          '2xl': '6rem',
+        },
+      },
     },
   },
   plugins: [
@@ -49,6 +69,13 @@ export default {
           values: theme("transitionDelay"),
         }
       );
+    },
+    function({ addComponents, theme }) {
+      addComponents({
+        '.container-query': {
+          'container-type': 'inline-size',
+        },
+      });
     },
   ],
 };

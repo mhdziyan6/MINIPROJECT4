@@ -5,6 +5,9 @@
 @layer base {
   :root {
     --scroll-offset: 100px;
+    --container-padding: clamp(1rem, 5vw, 2.5rem);
+    --section-spacing: clamp(3rem, 8vh, 6rem);
+    --component-spacing: clamp(1.5rem, 4vh, 3rem);
   }
 
   html {
@@ -31,15 +34,49 @@
     -moz-user-select: none;
     -ms-user-select: none;
   }
+
+  .dynamic-padding {
+    padding: var(--container-padding);
+  }
+
+  .dynamic-spacing {
+    margin-bottom: var(--section-spacing);
+  }
+
+  .component-spacing {
+    margin-bottom: var(--component-spacing);
+  }
+
+  .responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: var(--component-spacing);
+  }
+
+  .responsive-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--component-spacing);
+  }
+
+  .fluid-type {
+    font-size: clamp(1rem, 2vw + 0.5rem, 2rem);
+  }
+
+  .fluid-title {
+    font-size: clamp(2rem, 4vw + 1rem, 4rem);
+  }
 }
 
 @layer components {
   .section-padding {
-    @apply py-12 md:py-20 px-4 md:px-6;
+    padding: var(--section-spacing) var(--container-padding);
   }
   
   .container-width {
-    @apply max-w-7xl mx-auto px-4 md:px-6;
+    @apply max-w-7xl mx-auto;
+    padding-inline: var(--container-padding);
+    width: min(100%, 1280px);
   }
 
   .text-balance {
@@ -48,6 +85,15 @@
 
   .image-wrapper {
     @apply relative overflow-hidden;
+    aspect-ratio: 16/9;
+  }
+
+  .image-wrapper.portrait {
+    aspect-ratio: 3/4;
+  }
+
+  .image-wrapper.square {
+    aspect-ratio: 1;
   }
 
   .image-wrapper img {
@@ -57,31 +103,33 @@
   .image-wrapper:hover img {
     @apply scale-110;
   }
-}
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-}
+  .card {
+    @apply bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden transition-all duration-300;
+    height: 100%;
+  }
 
-::-webkit-scrollbar-track {
-  @apply bg-neutral-900;
-}
+  .card:hover {
+    @apply border-neutral-700 transform scale-[1.02];
+  }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-neutral-700 rounded-full;
-}
+  .card-content {
+    @apply p-6;
+  }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-600;
-}
+  .button-base {
+    @apply px-6 py-3 rounded-lg font-medium transition-all duration-300;
+  }
 
-/* Smooth image loading */
-.image-loading {
-  opacity: 0;
-  transition: opacity 0.3s ease-in-out;
-}
+  .button-primary {
+    @apply button-base bg-gradient-to-r from-blue-600 to-violet-600 text-white hover:opacity-90;
+  }
 
-.image-loaded {
-  opacity: 1;
+  .button-secondary {
+    @apply button-base border border-neutral-700 hover:border-neutral-600 text-neutral-300 hover:text-white;
+  }
+
+  .input-base {
+    @apply w-full px-4 py-2 bg-neutral-800 rounded-lg border border-neutral-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-white;
+  }
 }
