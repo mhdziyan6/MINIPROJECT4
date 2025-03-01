@@ -5,42 +5,36 @@ import { HeroParallax } from "./ui/hero-parallax";
 const events = [
   {
     title: "Corporate Gala",
-    link: "#",
     thumbnail:
       "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069",
     category: "Corporate",
   },
   {
     title: "Wedding Celebration",
-    link: "#",
     thumbnail:
       "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2070",
     category: "Wedding",
   },
   {
     title: "Tech Conference",
-    link: "#",
     thumbnail:
       "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070",
     category: "Conference",
   },
   {
     title: "Fashion Show",
-    link: "#",
     thumbnail:
       "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=2076",
     category: "Fashion",
   },
   {
     title: "Music Festival",
-    link: "#",
     thumbnail:
       "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=2070",
     category: "Festival",
   },
   {
     title: "Product Launch",
-    link: "#",
     thumbnail:
       "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=2012",
     category: "Launch",
@@ -65,7 +59,7 @@ const LatestSection = () => {
     >
       <motion.div
         style={{ opacity }}
-        className="sticky top-[25vh] md:top-[30vh] z-[40] text-center max-w-4xl mx-auto px-4 md:px-6 mb-10 md:mb-20"
+        className="sticky top-[25vh] md:top-[30vh] z-[40] text-left max-w-4xl mx-auto px-4 md:px-6 mb-10 md:mb-20"
       >
         <motion.h2 
           style={{ scale }}

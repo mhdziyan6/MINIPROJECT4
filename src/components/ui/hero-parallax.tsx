@@ -13,7 +13,6 @@ export const HeroParallax = ({
 }: {
   products: {
     title: string;
-    link: string;
     thumbnail: string;
     category: string;
   }[];
@@ -109,7 +108,6 @@ export const ProductCard = ({
 }: {
   product: {
     title: string;
-    link: string;
     thumbnail: string;
     category: string;
   };
@@ -126,11 +124,8 @@ export const ProductCard = ({
       key={product.title}
       className="group/product h-48 sm:h-64 md:h-96 w-[240px] sm:w-[320px] md:w-[480px] relative flex-shrink-0"
     >
-      <a
-        href={product.link}
+      <div
         className="block group-hover/product:shadow-2xl w-full h-full"
-        target="_blank"
-        rel="noopener noreferrer"
       >
         <div className="relative w-full h-full overflow-hidden rounded-xl">
           <img
@@ -140,12 +135,12 @@ export const ProductCard = ({
             loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover/product:opacity-100 transition-opacity duration-300"></div>
-          <div className="absolute bottom-4 left-4 opacity-0 group-hover/product:opacity-100 transition-opacity duration-300">
+          <div className="absolute bottom-4 left-4 text-left opacity-0 group-hover/product:opacity-100 transition-opacity duration-300">
             <h2 className="text-base sm:text-lg md:text-xl font-semibold text-white mb-1">{product.title}</h2>
             <span className="text-xs sm:text-sm text-gray-300">{product.category}</span>
           </div>
         </div>
-      </a>
+      </div>
     </motion.div>
   );
 };

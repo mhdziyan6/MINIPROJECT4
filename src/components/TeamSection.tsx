@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Linkedin, Twitter, Mail } from 'lucide-react';
 import eapenImage from '../images/EAPEN.jpg';
 import sibyImage from '../images/SIBY.jpg';
+import { Spotlight } from './ui/spotlight-new';
 
 const team = [
   {
@@ -19,15 +20,16 @@ const team = [
 
 const TeamSection = () => {
   return (
-    <section id="our-team" className="section-padding bg-gradient-to-b from-gray-900 to-black">
-      <div className="container-width">
+    <section id="our-team" className="section-padding relative min-h-screen bg-black/[0.96] antialiased bg-grid-white/[0.02] overflow-hidden">
+      <Spotlight />
+      <div className="container-width relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl font-bold mb-6">Meet Our Team</h2>
+          <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-b from-neutral-200 to-neutral-600">Meet Our Team</h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
             Our talented professionals bring creativity and expertise to every event
           </p>
