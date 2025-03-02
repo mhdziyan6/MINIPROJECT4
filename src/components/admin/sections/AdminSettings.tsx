@@ -18,13 +18,13 @@ const AdminSettings = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="w-full max-w-4xl mx-auto">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="space-y-8"
       >
-        <div>
+        <div className="lg:hidden">
           <h2 className="text-3xl font-bold">Account Settings</h2>
           <p className="text-neutral-400 mt-2">Manage your account preferences and security</p>
         </div>

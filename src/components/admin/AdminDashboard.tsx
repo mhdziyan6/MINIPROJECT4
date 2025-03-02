@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import {
   Settings,
@@ -8,28 +8,60 @@ import {
   Calendar,
   Image,
   LogOut,
-  Menu,
-  X,
   Briefcase,
   Home,
+  MessageSquare,
 } from "lucide-react";
 import AdminSettings from "./sections/AdminSettings";
 import JobManagement from "./sections/JobManagement";
-import UserInquiries from "./sections/UserInquiries"; // Import User Inquiries
+import UserInquiries from "./sections/UserInquiries";
 import EventManagement from "./sections/EventManagement";
 import GalleryManagement from "./sections/GalleryManagement";
+import LatestWorksManagement from "./sections/LatestWorksManagement";
+import FAQManagement from "./sections/FAQManagement";
+import { Sidebar, SidebarBody, SidebarLink } from "../ui/sidebar";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [open, setOpen] = useState(true);
 
   const menuItems = [
-    { icon: Settings, label: "Settings", path: "settings" },
-    { icon: Users, label: "Job Management", path: "jobs" },
-    { icon: Mail, label: "User Inquiries", path: "inquiries" }, // Added User Inquiries
-    { icon: Calendar, label: "Event Management", path: "events" },
-    { icon: Image, label: "Gallery Management", path: "gallery" },
+    { 
+      icon: <Settings className="h-5 w-5 flex-shrink-0" />, 
+      label: "Settings", 
+      href: "settings" 
+    },
+    { 
+      icon: <Users className="h-5 w-5 flex-shrink-0" />, 
+      label: "Job Management", 
+      href: "jobs" 
+    },
+    { 
+      icon: <Mail className="h-5 w-5 flex-shrink-0" />, 
+      label: "User Inquiries", 
+      href: "inquiries" 
+    },
+    { 
+      icon: <Calendar className="h-5 w-5 flex-shrink-0" />, 
+      label: "Event Management", 
+      href: "events" 
+    },
+    { 
+      icon: <Image className="h-5 w-5 flex-shrink-0" />, 
+      label: "Gallery Management", 
+      href: "gallery" 
+    },
+    { 
+      icon: <Image className="h-5 w-5 flex-shrink-0" />, 
+      label: "Latest Works", 
+      href: "latest-works" 
+    },
+    { 
+      icon: <MessageSquare className="h-5 w-5 flex-shrink-0" />, 
+      label: "FAQ Management", 
+      href: "faq" 
+    },
   ];
 
   const handleLogout = () => {
@@ -37,81 +69,82 @@ const AdminDashboard = () => {
     navigate("/admin/login");
   };
 
-  return (
-    <div className="min-h-screen bg-black text-white flex">
-      {/* Sidebar Toggle Button (Mobile) */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-neutral-900 rounded-lg"
-      >
-        {isSidebarOpen ? (
-          <X className="h-6 w-6 text-white" />
-        ) : (
-          <Menu className="h-6 w-6 text-white" />
-        )}
-      </button>
+  const getCurrentPageTitle = () => {
+    const path = location.pathname.split('/').pop() || '';
+    const menuItem = menuItems.find(item => item.href === path);
+    return menuItem ? menuItem.label : 'Dashboard';
+  };
 
-      {/* Sidebar */}
-      <AnimatePresence mode="wait">
-        {isSidebarOpen && (
-          <motion.div
-            initial={{ x: -300 }}
-            animate={{ x: 0 }}
-            exit={{ x: -300 }}
-            className="fixed lg:static inset-y-0 left-0 w-64 bg-neutral-900 p-4 flex flex-col z-40"
-          >
-            <div className="flex items-center gap-2 px-2 py-4">
-              <Briefcase className="h-8 w-8 text-blue-500" />
-              <span className="text-xl font-bold">Admin Panel</span>
+  return (
+    <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
+      <Sidebar open={open} setOpen={setOpen}>
+        <SidebarBody className="flex flex-col h-full justify-between">
+          <div className="flex flex-col flex-1">
+            <div className="flex items-center gap-3 px-3 py-4 mb-6">
+              <Briefcase className="h-8 w-8 text-blue-500 flex-shrink-0" />
+              <motion.span
+                animate={{
+                  display: open ? "inline-block" : "none",
+                  opacity: open ? 1 : 0,
+                }}
+                className="text-xl font-bold whitespace-pre"
+              >
+                Admin Panel
+              </motion.span>
             </div>
 
-            <nav className="flex-1 mt-8">
-              <div className="space-y-1">
-                <a
-                  href="/"
-                  className="flex items-center gap-2 px-4 py-3 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
-                >
-                  <Home className="h-5 w-5" />
-                  View Site
-                </a>
-                {menuItems.map((item) => (
-                  <button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    className={`w-full flex items-center gap-2 px-4 py-3 rounded-lg transition-colors ${
-                      location.pathname.includes(item.path)
-                        ? "bg-blue-600 text-white"
-                        : "text-neutral-300 hover:text-white hover:bg-neutral-800"
-                    }`}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </nav>
-
-            <button
+            <div className="space-y-1 px-1">
+              <SidebarLink
+                link={{
+                  label: "View Site",
+                  href: "/",
+                  icon: <Home className="h-5 w-5 flex-shrink-0" />
+                }}
+              />
+              
+              {menuItems.map((item) => (
+                <SidebarLink
+                  key={item.href}
+                  link={item}
+                  active={location.pathname.includes(item.href)}
+                  onClick={() => navigate(item.href)}
+                />
+              ))}
+            </div>
+          </div>
+          
+          <div className="mt-6 px-1">
+            <SidebarLink
+              link={{
+                label: "Logout",
+                href: "#",
+                icon: <LogOut className="h-5 w-5 flex-shrink-0 text-red-400" />
+              }}
+              className="text-red-400 hover:text-red-300 hover:bg-neutral-800"
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-3 text-red-400 hover:text-red-300 hover:bg-neutral-800 rounded-lg transition-colors"
-            >
-              <LogOut className="h-5 w-5" />
-              Logout
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            />
+          </div>
+        </SidebarBody>
+      </Sidebar>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 lg:pl-8 pl-20">
-        <Routes>
-          <Route path="settings" element={<AdminSettings />} />
-          <Route path="jobs" element={<JobManagement />} />
-          <Route path="inquiries" element={<UserInquiries />} /> {/* Added Route */}
-          <Route path="events" element={<EventManagement />} />
-          <Route path="gallery" element={<GalleryManagement />} />
-          <Route path="*" element={<AdminSettings />} />
-        </Routes>
+      <div className="flex-1 flex flex-col min-h-screen">
+        <div className="lg:hidden"></div>
+        <div className="flex-1 p-6 lg:p-8 overflow-auto">
+          <div className="hidden lg:block mb-8">
+            <h1 className="text-3xl font-bold">{getCurrentPageTitle()}</h1>
+          </div>
+          <Routes>
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="jobs" element={<JobManagement />} />
+            <Route path="inquiries" element={<UserInquiries />} />
+            <Route path="events" element={<EventManagement />} />
+            <Route path="gallery" element={<GalleryManagement />} />
+            <Route path="latest-works" element={<LatestWorksManagement />} />
+            <Route path="faq" element={<FAQManagement />} />
+            <Route path="*" element={<AdminSettings />} />
+          </Routes>
+        </div>
       </div>
     </div>
   );
