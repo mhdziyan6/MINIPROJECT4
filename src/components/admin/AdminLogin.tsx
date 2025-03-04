@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Briefcase, Lock, Mail } from 'lucide-react';
+import axios from 'axios';  // ✅ Import Axios for API calls
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -11,13 +12,21 @@ const AdminLogin = () => {
   });
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication - replace with actual authentication logic
-    if (formData.email === 'admin@example.com' && formData.password === 'admin123') {
-      localStorage.setItem('adminToken', 'mock-jwt-token');
+    setError('');
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/admin/login', new URLSearchParams({
+        username: formData.email, 
+        password: formData.password
+      }), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }  // ✅ Required for FastAPI login
+      });
+
+      localStorage.setItem('adminToken', response.data.access_token);
       navigate('/admin/dashboard');
-    } else {
+    } catch (error) {
       setError('Invalid credentials');
     }
   };
@@ -30,10 +39,7 @@ const AdminLogin = () => {
         className="max-w-md w-full space-y-8 bg-neutral-900 p-8 rounded-xl"
       >
         <div className="text-center">
-          <motion.div
-            className="flex justify-center mb-6"
-            whileHover={{ scale: 1.05 }}
-          >
+          <motion.div className="flex justify-center mb-6" whileHover={{ scale: 1.05 }}>
             <Briefcase className="h-12 w-12 text-blue-500" />
           </motion.div>
           <h2 className="text-3xl font-bold text-white">Admin Login</h2>
@@ -43,11 +49,7 @@ const AdminLogin = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          {error && (
-            <div className="bg-red-500/10 text-red-500 p-3 rounded-lg text-sm text-center">
-              {error}
-            </div>
-          )}
+          {error && <div className="bg-red-500/10 text-red-500 p-3 rounded-lg text-sm text-center">{error}</div>}
 
           <div className="space-y-4">
             <div>

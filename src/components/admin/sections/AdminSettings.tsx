@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'; 
 import { motion } from 'framer-motion';
 import { User, Lock, Mail } from 'lucide-react';
 
@@ -11,10 +11,75 @@ const AdminSettings = () => {
     confirmPassword: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [newAdmin, setNewAdmin] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+
+  const handleUpdateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle password change logic here
-    console.log('Password change submitted:', formData);
+
+    const adminId = "ADMIN_ID_HERE"; // Replace with actual admin ID from DB
+    const updateData: any = {
+      name: formData.name,
+      email: formData.email,
+    };
+
+    if (formData.newPassword && formData.newPassword === formData.confirmPassword) {
+      updateData.new_password = formData.newPassword;
+    } else if (formData.newPassword) {
+      alert("New password and confirm password do not match.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/admin/update/${adminId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert("Admin details updated successfully!");
+      } else {
+        alert(result.detail || "Failed to update admin.");
+      }
+    } catch (error) {
+      console.error("Error updating admin:", error);
+    }
+  };
+
+  const handleAddAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newAdmin.name || !newAdmin.email || !newAdmin.password) {
+      alert("Please fill in all fields for the new admin.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/admin/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newAdmin),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert("New admin added successfully!");
+        setNewAdmin({ name: '', email: '', password: '' }); // Reset form
+      } else {
+        alert(result.detail || "Failed to add new admin.");
+      }
+    } catch (error) {
+      console.error("Error adding admin:", error);
+    }
   };
 
   return (
@@ -40,114 +105,112 @@ const AdminSettings = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Update Current Admin */}
+          <form onSubmit={handleUpdateAdmin} className="space-y-6">
+            <h4 className="text-lg font-semibold mb-4">Update Admin</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2">
                   Full Name
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-neutral-500" />
-                  </div>
+                  <User className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-neutral-500" />
                   <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="block w-full pl-10 pr-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white"
                   />
                 </div>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-neutral-300 mb-2">
                   Email Address
                 </label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-neutral-500" />
-                  </div>
+                  <Mail className="absolute inset-y-0 left-0 pl-3 h-5 w-5 text-neutral-500" />
                   <input
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="block w-full pl-10 pr-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full pl-10 pr-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white"
                   />
                 </div>
               </div>
             </div>
-
             <div className="border-t border-neutral-800 pt-6">
               <h4 className="text-lg font-semibold mb-4">Change Password</h4>
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-neutral-300 mb-2">
-                    Current Password
+                    New Password
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-neutral-500" />
-                    </div>
-                    <input
-                      type="password"
-                      value={formData.currentPassword}
-                      onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                      className="block w-full pl-10 pr-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Enter current password"
-                    />
-                  </div>
+                  <input
+                    type="password"
+                    value={formData.newPassword}
+                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                    className="block w-full py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white"
+                  />
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      New Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-neutral-500" />
-                      </div>
-                      <input
-                        type="password"
-                        value={formData.newPassword}
-                        onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                        className="block w-full pl-10 pr-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Enter new password"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-300 mb-2">
-                      Confirm New Password
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Lock className="h-5 w-5 text-neutral-500" />
-                      </div>
-                      <input
-                        type="password"
-                        value={formData.confirmPassword}
-                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        className="block w-full pl-10 pr-3 py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="Confirm new password"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-300 mb-2">
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    className="block w-full py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white"
+                  />
                 </div>
               </div>
             </div>
-
             <div className="flex justify-end">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:opacity-90"
               >
                 Save Changes
               </motion.button>
             </div>
+          </form>
+
+          {/* Add New Admin */}
+          <form onSubmit={handleAddAdmin} className="space-y-6">
+            <h4 className="text-lg font-semibold mt-6">Add New Admin</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <input
+                type="text"
+                placeholder="Admin Name"
+                value={newAdmin.name}
+                onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })}
+                className="block w-full py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white"
+              />
+              <input
+                type="email"
+                placeholder="Admin Email"
+                value={newAdmin.email}
+                onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
+                className="block w-full py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white"
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={newAdmin.password}
+                onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                className="block w-full py-2 border border-neutral-700 rounded-lg bg-neutral-800 text-white"
+              />
+            </div>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:opacity-90"
+            >
+              Add Admin
+            </motion.button>
           </form>
         </div>
       </motion.div>
