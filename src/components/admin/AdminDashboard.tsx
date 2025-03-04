@@ -11,6 +11,8 @@ import {
   Briefcase,
   Home,
   MessageSquare,
+  Menu,
+  X,
 } from "lucide-react";
 import AdminSettings from "./sections/AdminSettings";
 import JobManagement from "./sections/JobManagement";
@@ -19,12 +21,11 @@ import EventManagement from "./sections/EventManagement";
 import GalleryManagement from "./sections/GalleryManagement";
 import LatestWorksManagement from "./sections/LatestWorksManagement";
 import FAQManagement from "./sections/FAQManagement";
-import { Sidebar, SidebarBody, SidebarLink } from "../ui/sidebar";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [open, setOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
     { 
@@ -77,61 +78,125 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col lg:flex-row">
-      <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="flex flex-col h-full justify-between">
-          <div className="flex flex-col flex-1">
-            <div className="flex items-center gap-3 px-3 py-4 mb-6">
-              <Briefcase className="h-8 w-8 text-blue-500 flex-shrink-0" />
-              <motion.span
-                animate={{
-                  display: open ? "inline-block" : "none",
-                  opacity: open ? 1 : 0,
-                }}
-                className="text-xl font-bold whitespace-pre"
-              >
-                Admin Panel
-              </motion.span>
-            </div>
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:flex-col w-64 bg-neutral-900 border-r border-neutral-800 min-h-screen">
+        <div className="flex items-center gap-3 px-6 py-6 border-b border-neutral-800">
+          <Briefcase className="h-8 w-8 text-blue-500 flex-shrink-0" />
+          <span className="text-xl font-bold">Admin Panel</span>
+        </div>
+        
+        <div className="flex flex-col flex-1 p-4 space-y-2">
+          <a 
+            href="/"
+            className="flex items-center gap-3 px-3 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
+          >
+            <Home className="h-5 w-5 flex-shrink-0" />
+            <span>View Site</span>
+          </a>
+          
+          {menuItems.map((item) => (
+            <button
+              key={item.href}
+              onClick={() => navigate(item.href)}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                location.pathname.includes(item.href)
+                  ? "bg-blue-600 text-white"
+                  : "text-neutral-300 hover:text-white hover:bg-neutral-800"
+              }`}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </button>
+          ))}
+        </div>
+        
+        <div className="p-4 border-t border-neutral-800">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-3 py-2 w-full text-red-400 hover:text-red-300 hover:bg-neutral-800 rounded-lg transition-colors"
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            <span>Logout</span>
+          </button>
+        </div>
+      </div>
 
-            <div className="space-y-1 px-1">
-              <SidebarLink
-                link={{
-                  label: "View Site",
-                  href: "/",
-                  icon: <Home className="h-5 w-5 flex-shrink-0" />
-                }}
-              />
+      {/* Mobile Header */}
+      <div className="lg:hidden flex items-center justify-between p-4 bg-neutral-900 border-b border-neutral-800">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setSidebarOpen(true)}
+            className="text-white"
+          >
+            <Menu className="h-6 w-6" />
+          </button>
+          <span className="text-xl font-bold">Admin Panel</span>
+        </div>
+      </div>
+
+      {/* Mobile Sidebar */}
+      {sidebarOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 w-64 bg-neutral-900 z-50 lg:hidden flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800">
+              <div className="flex items-center gap-3">
+                <Briefcase className="h-6 w-6 text-blue-500" />
+                <span className="text-lg font-bold">Admin Panel</span>
+              </div>
+              <button onClick={() => setSidebarOpen(false)}>
+                <X className="h-6 w-6 text-white" />
+              </button>
+            </div>
+            
+            <div className="flex flex-col flex-1 p-4 space-y-2 overflow-y-auto">
+              <a 
+                href="/"
+                className="flex items-center gap-3 px-3 py-2 text-neutral-300 hover:text-white hover:bg-neutral-800 rounded-lg transition-colors"
+              >
+                <Home className="h-5 w-5 flex-shrink-0" />
+                <span>View Site</span>
+              </a>
               
               {menuItems.map((item) => (
-                <SidebarLink
+                <button
                   key={item.href}
-                  link={item}
-                  active={location.pathname.includes(item.href)}
-                  onClick={() => navigate(item.href)}
-                />
+                  onClick={() => {
+                    navigate(item.href);
+                    setSidebarOpen(false);
+                  }}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                    location.pathname.includes(item.href)
+                      ? "bg-blue-600 text-white"
+                      : "text-neutral-300 hover:text-white hover:bg-neutral-800"
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </button>
               ))}
             </div>
+            
+            <div className="p-4 border-t border-neutral-800">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-3 py-2 w-full text-red-400 hover:text-red-300 hover:bg-neutral-800 rounded-lg transition-colors"
+              >
+                <LogOut className="h-5 w-5 flex-shrink-0" />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
-          
-          <div className="mt-6 px-1">
-            <SidebarLink
-              link={{
-                label: "Logout",
-                href: "#",
-                icon: <LogOut className="h-5 w-5 flex-shrink-0 text-red-400" />
-              }}
-              className="text-red-400 hover:text-red-300 hover:bg-neutral-800"
-              onClick={handleLogout}
-            />
-          </div>
-        </SidebarBody>
-      </Sidebar>
+        </>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-screen">
-        <div className="lg:hidden"></div>
-        <div className="flex-1 p-6 lg:p-8 overflow-auto">
-          <div className="hidden lg:block mb-8">
+        <div className="flex-1 p-6 overflow-auto">
+          <div className="mb-8">
             <h1 className="text-3xl font-bold">{getCurrentPageTitle()}</h1>
           </div>
           <Routes>
