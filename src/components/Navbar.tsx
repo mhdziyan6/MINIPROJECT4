@@ -14,7 +14,6 @@ const Navbar = () => {
     { name: 'About Us', type: 'scroll', to: 'about-us' },
     { name: 'Services', type: 'scroll', to: 'services' },
     { name: 'Gallery', type: 'route', to: '/gallery' },
-    { name: 'Interactive Gallery', type: 'route', to: '/interactive-gallery' },
     { name: 'Our Team', type: 'scroll', to: 'our-team' },
     { name: 'FAQ', type: 'route', to: '/faq' }
   ];

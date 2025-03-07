@@ -6,7 +6,7 @@ import HeroSection from './components/HeroSection';
 import AboutSection from './components/AboutSection';
 import LatestSection from './components/LatestSection';
 import ServicesSection from './components/ServicesSection.tsx';
-import GalleryPage from './components/GalleryPage';
+import InteractiveGallery from './components/InteractiveGallery';
 import TeamSection from './components/TeamSection';
 import ContactSection from './components/ContactSection';
 import CareersPage from './components/CareersPage';
@@ -15,7 +15,6 @@ import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import Preloader from './components/Preloader';
 import ParticlesBackground from './components/ParticlesBackground';
-import InteractiveGallery from './components/InteractiveGallery';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -79,7 +78,12 @@ function App() {
         {/* Public Routes with Page Transition */}
         <Route path="/gallery" element={
           <PageTransitionWrapper>
-            <GalleryPage />
+            <div className="bg-black text-white">
+              <Navbar />
+              <div className="pt-12">
+                <InteractiveGallery />
+              </div>
+            </div>
           </PageTransitionWrapper>
         } />
         <Route path="/careers" element={
@@ -96,7 +100,7 @@ function App() {
           <PageTransitionWrapper>
             <div className="bg-black text-white">
               <Navbar />
-              <div className="pt-20">
+              <div className="pt-12">
                 <InteractiveGallery />
               </div>
             </div>

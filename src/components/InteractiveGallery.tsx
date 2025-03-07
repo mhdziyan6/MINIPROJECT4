@@ -140,15 +140,15 @@ const InteractiveGallery = () => {
   };
 
   return (
-    <section className="py-20 bg-black text-white">
+    <section className="py-10 bg-black text-white">
       <div className="container-width">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-12"
         >
-          <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+          <h2 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
             Our Event Gallery
           </h2>
           <p className="text-xl text-gray-300 max-w-3xl mx-auto">
