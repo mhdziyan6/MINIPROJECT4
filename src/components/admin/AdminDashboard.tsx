@@ -21,13 +21,19 @@ import EventManagement from "./sections/EventManagement";
 import GalleryManagement from "./sections/GalleryManagement";
 import LatestWorksManagement from "./sections/LatestWorksManagement";
 import FAQManagement from "./sections/FAQManagement";
+import AdminDashboard from "./sections/AdminDashboard";
 
-const AdminDashboard = () => {
+const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
+    { 
+      icon: <Home className="h-5 w-5 flex-shrink-0" />, 
+      label: "Dashboard", 
+      href: "dashboard" 
+    },
     { 
       icon: <Settings className="h-5 w-5 flex-shrink-0" />, 
       label: "Settings", 
@@ -200,6 +206,7 @@ const AdminDashboard = () => {
             <h1 className="text-3xl font-bold">{getCurrentPageTitle()}</h1>
           </div>
           <Routes>
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="jobs" element={<JobManagement />} />
             <Route path="inquiries" element={<UserInquiries />} />
@@ -207,7 +214,7 @@ const AdminDashboard = () => {
             <Route path="gallery" element={<GalleryManagement />} />
             <Route path="latest-works" element={<LatestWorksManagement />} />
             <Route path="faq" element={<FAQManagement />} />
-            <Route path="*" element={<AdminSettings />} />
+            <Route path="*" element={<AdminDashboard />} />
           </Routes>
         </div>
       </div>
@@ -215,4 +222,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminLayout;
