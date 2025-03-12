@@ -10,6 +10,10 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import jwt, JWTError
 import datetime
 from bson import ObjectId, errors
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+from typing import List
+from fastapi.security import OAuth2PasswordBearer
+
 
 # FastAPI Instance
 app = FastAPI()
@@ -31,16 +35,24 @@ db = client[DB_NAME]
 contacts_collection = db["contacts"]
 admins_collection = db["admins"]
 faqs_collection = db["faqs"]
-latest_works_collection = db["latest_works"]  # New collection for latest works
+latest_works_collection = db["latest_works"]
 
-# JWT Security
-SECRET_KEY = os.getenv("SECRET_KEY", "miniproject")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 2
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/admin/login")
+# Email Configuration
+email_conf = ConnectionConfig(
+    MAIL_USERNAME = "your_email@gmail.com",  # Replace with your email
+    MAIL_PASSWORD = "your_app_password",      # Replace with your app password
+    MAIL_FROM = "your_email@gmail.com",       # Replace with your email
+    MAIL_PORT = 587,
+    MAIL_SERVER = "smtp.gmail.com",
+    MAIL_STARTTLS = True,
+    MAIL_SSL_TLS = False,
+    USE_CREDENTIALS = True
+)
 
 # Models
+class EmailSchema(BaseModel):
+    message: str
+
 class Contact(BaseModel):
     name: str
     email: EmailStr
@@ -87,6 +99,8 @@ def create_access_token(data: dict, expires_delta: datetime.timedelta | None = N
     expire = datetime.datetime.utcnow() + (expires_delta or datetime.timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Authenticate Admin and Protect Routes
 async def get_current_admin(token: str = Depends(oauth2_scheme)):
@@ -267,6 +281,40 @@ async def solve_inquiry(inquiry_id: str):
         raise HTTPException(status_code=400, detail="Invalid inquiry ID")
     except Exception as e:
         print(f"Error marking inquiry as solved: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Send Reply to Inquiry
+@app.post("/inquiries/{inquiry_id}/reply")
+async def reply_to_inquiry(inquiry_id: str, email_data: EmailSchema):
+    try:
+        # Find the inquiry
+        inquiry = await contacts_collection.find_one({"_id": ObjectId(inquiry_id)})
+        if not inquiry:
+            raise HTTPException(status_code=404, detail="Inquiry not found")
+
+        # Create the email message
+        message = MessageSchema(
+            subject="Reply to Your Inquiry - E&S Decorations",
+            recipients=[inquiry["email"]],
+            body=email_data.message,
+            subtype="html"
+        )
+
+        # Initialize FastMail
+        fm = FastMail(email_conf)
+        
+        # Send the email
+        await fm.send_message(message)
+
+        # Update inquiry status to solved
+        await contacts_collection.update_one(
+            {"_id": ObjectId(inquiry_id)},
+            {"$set": {"is_solved": True}}
+        )
+
+        return {"message": "Reply sent successfully"}
+    except Exception as e:
+        print(f"Error sending reply: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Admin Login with JWT

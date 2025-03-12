@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, CheckCircle, Send } from 'lucide-react';
+import axios from 'axios';
 
 interface Inquiry {
   id: string;
@@ -18,6 +19,9 @@ const UserInquiries = () => {
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [replyMessage, setReplyMessage] = useState<string>('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInquiries();
@@ -25,11 +29,11 @@ const UserInquiries = () => {
 
   const fetchInquiries = async () => {
     try {
-      const response = await fetch(API_BASE_URL);
-      const data = await response.json();
-      setInquiries(data.filter((inq: Inquiry) => !inq.is_solved));
+      const response = await axios.get(API_BASE_URL);
+      setInquiries(response.data.filter((inq: Inquiry) => !inq.is_solved));
     } catch (error) {
       console.error("Error fetching inquiries:", error);
+      setError("Failed to fetch inquiries");
     } finally {
       setLoading(false);
     }
@@ -37,39 +41,41 @@ const UserInquiries = () => {
 
   const markAsSolved = async (id: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/${id}/solve`, { method: "PATCH" });
+      const response = await axios.patch(`${API_BASE_URL}/${id}/solve`);
 
-      if (response.ok) {
+      if (response.status === 200) {
         setInquiries((prev) => prev.filter((inq) => inq.id !== id));
         if (selectedInquiry?.id === id) setSelectedInquiry(null);
-      } else {
-        console.error("Failed to mark as solved:", await response.text());
+        setSuccess("Inquiry marked as solved");
       }
     } catch (error) {
       console.error("Error marking inquiry as solved:", error);
+      setError("Failed to mark inquiry as solved");
     }
   };
 
   const handleSendMessage = async () => {
     if (!replyMessage.trim() || !selectedInquiry) return;
 
+    setSending(true);
+    setError(null);
+    setSuccess(null);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/${selectedInquiry.id}/reply`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: replyMessage }),
+      const response = await axios.post(`${API_BASE_URL}/${selectedInquiry.id}/reply`, {
+        message: replyMessage
       });
 
-      if (response.ok) {
+      if (response.status === 200) {
+        setSuccess("Reply sent successfully");
         setReplyMessage('');
-        // You might want to show a success message here
-      } else {
-        console.error("Failed to send message:", await response.text());
+        await markAsSolved(selectedInquiry.id);
       }
     } catch (error) {
       console.error("Error sending message:", error);
+      setError("Failed to send reply");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -84,29 +90,33 @@ const UserInquiries = () => {
           <div className="grid md:grid-cols-[350px,1fr] gap-6">
             {/* Left Sidebar - List of Inquiries */}
             <div className="bg-neutral-900 rounded-xl p-4 h-[calc(100vh-240px)] overflow-y-auto">
-              {inquiries.map(inquiry => (
-                <motion.div 
-                  key={inquiry.id} 
-                  initial={{ opacity: 0, y: 20 }} 
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`p-4 rounded-lg cursor-pointer transition-colors ${
-                    selectedInquiry?.id === inquiry.id 
-                      ? 'bg-blue-500/10 border border-blue-500/50' 
-                      : 'hover:bg-neutral-800 border border-transparent'
-                  }`}
-                  onClick={() => setSelectedInquiry(inquiry)}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0">
-                      <Mail className="h-5 w-5 text-neutral-400" />
+              {inquiries.length === 0 ? (
+                <p className="text-center text-neutral-400 py-4">No pending inquiries</p>
+              ) : (
+                inquiries.map(inquiry => (
+                  <motion.div 
+                    key={inquiry.id} 
+                    initial={{ opacity: 0, y: 20 }} 
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                      selectedInquiry?.id === inquiry.id 
+                        ? 'bg-blue-500/10 border border-blue-500/50' 
+                        : 'hover:bg-neutral-800 border border-transparent'
+                    }`}
+                    onClick={() => setSelectedInquiry(inquiry)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="h-10 w-10 rounded-full bg-neutral-800 flex items-center justify-center flex-shrink-0">
+                        <Mail className="h-5 w-5 text-neutral-400" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{inquiry.name}</h3>
+                        <p className="text-sm text-neutral-400">{inquiry.subject}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium">{inquiry.name}</h3>
-                      <p className="text-sm text-neutral-400">{inquiry.subject}</p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              )}
             </div>
 
             {/* Right Section - Inquiry Details */}
@@ -130,6 +140,18 @@ const UserInquiries = () => {
                     />
                   </div>
                   
+                  {/* Status Messages */}
+                  {error && (
+                    <div className="text-red-500 bg-red-500/10 p-3 rounded-lg">
+                      {error}
+                    </div>
+                  )}
+                  {success && (
+                    <div className="text-green-500 bg-green-500/10 p-3 rounded-lg">
+                      {success}
+                    </div>
+                  )}
+                  
                   {/* Buttons Row */}
                   <div className="flex gap-2 items-center">
                     <button
@@ -142,11 +164,11 @@ const UserInquiries = () => {
                     
                     <button
                       onClick={handleSendMessage}
-                      disabled={!replyMessage.trim()}
+                      disabled={!replyMessage.trim() || sending}
                       className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Send className="h-5 w-5" />
-                      Send Reply
+                      {sending ? 'Sending...' : 'Send Reply'}
                     </button>
                   </div>
                 </div>
