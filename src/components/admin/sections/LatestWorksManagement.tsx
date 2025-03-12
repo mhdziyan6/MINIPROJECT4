@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Plus, X, Edit2, Trash2, Image as ImageIcon } from 'lucide-react';
+import axios from 'axios';
 
 interface LatestWork {
-  id: string;
+  _id?: string;
   title: string;
   link: string;
   thumbnail: string;
@@ -11,75 +12,53 @@ interface LatestWork {
 }
 
 const LatestWorksManagement = () => {
-  const [works, setWorks] = useState<LatestWork[]>([
-    {
-      id: '1',
-      title: "Corporate Gala",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069",
-      category: "Corporate",
-    },
-    {
-      id: '2',
-      title: "Wedding Celebration",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2070",
-      category: "Wedding",
-    },
-    {
-      id: '3',
-      title: "Tech Conference",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070",
-      category: "Conference",
-    },
-    {
-      id: '4',
-      title: "Fashion Show",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=2076",
-      category: "Fashion",
-    },
-    {
-      id: '5',
-      title: "Music Festival",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=2070",
-      category: "Festival",
-    },
-    {
-      id: '6',
-      title: "Product Launch",
-      link: "#",
-      thumbnail: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=2012",
-      category: "Launch",
-    },
-  ]);
-
+  const [works, setWorks] = useState<LatestWork[]>([]);
   const [isAddingWork, setIsAddingWork] = useState(false);
   const [editingWork, setEditingWork] = useState<LatestWork | null>(null);
-  const [newWork, setNewWork] = useState<Partial<LatestWork>>({
+  const [newWork, setNewWork] = useState<LatestWork>({
     title: '',
     link: '',
     thumbnail: '',
     category: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editingWork) {
-      setWorks(works.map(work =>
-        work.id === editingWork.id ? { ...work, ...newWork } as LatestWork : work
-      ));
-      setEditingWork(null);
+  // Fetch works from backend
+  const fetchWorks = async () => {
+    try {
+      const response = await axios.get('http://127.0.0.1:8000/latest-works');
+      setWorks(response.data);
+    } catch (error) {
+      console.error('Error fetching works:', error);
     }
-    setIsAddingWork(false);
-    setNewWork({
-      title: '',
-      link: '',
-      thumbnail: '',
-      category: '',
-    });
+  };
+
+  useEffect(() => {
+    fetchWorks();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (editingWork?._id) {
+        // Update existing work
+        await axios.put(`http://127.0.0.1:8000/latest-works/${editingWork._id}`, newWork);
+      } else {
+        // Create new work
+        await axios.post('http://127.0.0.1:8000/latest-works', newWork);
+      }
+
+      setIsAddingWork(false);
+      setEditingWork(null);
+      setNewWork({
+        title: '',
+        link: '',
+        thumbnail: '',
+        category: '',
+      });
+      fetchWorks(); // Refresh the works list
+    } catch (error) {
+      console.error('Error saving work:', error);
+    }
   };
 
   const handleEdit = (work: LatestWork) => {
@@ -88,9 +67,14 @@ const LatestWorksManagement = () => {
     setIsAddingWork(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this work? This action cannot be undone.')) {
-      setWorks(works.filter(work => work.id !== id));
+      try {
+        await axios.delete(`http://127.0.0.1:8000/latest-works/${id}`);
+        fetchWorks(); // Refresh the works list
+      } catch (error) {
+        console.error('Error deleting work:', error);
+      }
     }
   };
 
@@ -109,7 +93,7 @@ const LatestWorksManagement = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {works.map((work) => (
             <motion.div
-              key={work.id}
+              key={work._id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="group relative h-48 sm:h-64 md:h-96 w-full"
@@ -138,7 +122,7 @@ const LatestWorksManagement = () => {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    onClick={() => handleDelete(work.id)}
+                    onClick={() => work._id && handleDelete(work._id)}
                     className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -147,6 +131,18 @@ const LatestWorksManagement = () => {
               </div>
             </motion.div>
           ))}
+        </div>
+
+        <div className="flex justify-end">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsAddingWork(true)}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
+          >
+            <Plus className="h-5 w-5" />
+            Add Work
+          </motion.button>
         </div>
 
         <AnimatePresence>
@@ -171,7 +167,7 @@ const LatestWorksManagement = () => {
               >
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-2xl font-bold">
-                    Edit Work
+                    {editingWork ? 'Edit Work' : 'Add New Work'}
                   </h3>
                   <button
                     onClick={() => {
@@ -254,7 +250,7 @@ const LatestWorksManagement = () => {
                       type="submit"
                       className="px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
                     >
-                      Update Work
+                      {editingWork ? 'Update Work' : 'Add Work'}
                     </motion.button>
                   </div>
                 </form>

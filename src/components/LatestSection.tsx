@@ -1,47 +1,17 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { HeroParallax } from "./ui/hero-parallax";
+import axios from 'axios';
 
-const events = [
-  {
-    title: "Corporate Gala",
-    thumbnail:
-      "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069",
-    category: "Corporate",
-  },
-  {
-    title: "Wedding Celebration",
-    thumbnail:
-      "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2070",
-    category: "Wedding",
-  },
-  {
-    title: "Tech Conference",
-    thumbnail:
-      "https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070",
-    category: "Conference",
-  },
-  {
-    title: "Fashion Show",
-    thumbnail:
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=2076",
-    category: "Fashion",
-  },
-  {
-    title: "Music Festival",
-    thumbnail:
-      "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?q=80&w=2070",
-    category: "Festival",
-  },
-  {
-    title: "Product Launch",
-    thumbnail:
-      "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?q=80&w=2012",
-    category: "Launch",
-  },
-];
+interface LatestWork {
+  _id: string;
+  title: string;
+  thumbnail: string;
+  category: string;
+}
 
 const LatestSection = () => {
+  const [works, setWorks] = useState<LatestWork[]>([]);
   const sectionRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -50,6 +20,19 @@ const LatestSection = () => {
 
   const opacity = useTransform(scrollYProgress, [0.8, 0.9], [1, 0]);
   const scale = useTransform(scrollYProgress, [0.8, 0.9], [1, 0.97]);
+
+  useEffect(() => {
+    const fetchWorks = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/latest-works');
+        setWorks(response.data);
+      } catch (error) {
+        console.error('Error fetching works:', error);
+      }
+    };
+
+    fetchWorks();
+  }, []);
 
   return (
     <section 
@@ -76,7 +59,7 @@ const LatestSection = () => {
       </motion.div>
 
       <div className="relative z-10">
-        <HeroParallax products={events} />
+        <HeroParallax products={works} />
       </div>
     </section>
   );
