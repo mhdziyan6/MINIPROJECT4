@@ -89,6 +89,11 @@ class LatestWork(BaseModel):
     thumbnail: str
     category: str
 
+# Add the ReplySchema class
+class ReplySchema(BaseModel):
+    plain_text_body: str
+    html_body: str
+
 # Password Hashing
 def hash_password(password: str) -> str:
     salt = bcrypt.gensalt()
@@ -331,8 +336,6 @@ async def reply_to_inquiry(inquiry_id: str, reply: ReplySchema):
     except Exception as e:
         logging.error(f"Error sending reply: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
-
-
 
 # Admin Login with JWT
 @app.post("/admin/login", response_model=Token)

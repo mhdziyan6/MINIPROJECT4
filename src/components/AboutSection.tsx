@@ -9,20 +9,31 @@ const timelineData = [
     content: (
       <div>
         <p className="text-gray-300 text-sm md:text-base font-normal mb-8">
-          Expanding our horizons with international events and launching our innovative virtual event platform.
+          Continuing our legacy of excellence with expanded services and innovative event solutions:
         </p>
+        <div className="mb-8">
+          <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base mb-2">
+            ✨ Luxury Food Counters with Live Juice Conveyors
+          </div>
+          <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base mb-2">
+            ✨ Professional Photography & Videography Services
+          </div>
+          <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base">
+            ✨ Premium Stage & Event Decorations
+          </div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-20">
           <div className="image-wrapper rounded-lg h-20 md:h-44 lg:h-60">
             <img
               src="https://images.unsplash.com/photo-1505236858219-8359eb29e329?q=80&w=2062"
-              alt="Virtual Event Platform"
+              alt="Modern Event Services"
               loading="lazy"
             />
           </div>
           <div className="image-wrapper rounded-lg h-20 md:h-44 lg:h-60">
             <img
               src="https://images.unsplash.com/photo-1475721027785-f74eccf877e2?q=80&w=2070"
-              alt="International Events"
+              alt="Event Excellence"
               loading="lazy"
             />
           </div>
@@ -31,38 +42,35 @@ const timelineData = [
     ),
   },
   {
-    title: "2023",
+    title: "2010",
     content: (
       <div>
         <p className="text-gray-300 text-sm md:text-base font-normal mb-8">
-          A year of remarkable growth and innovation in event management:
+          Expanding our services to become a complete event management solution:
         </p>
         <div className="mb-8">
           <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base mb-2">
-            ✨ Successfully managed over 200 corporate events
+            🌟 Full-scale Event Management Services
           </div>
           <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base mb-2">
-            ✨ Launched sustainable event initiatives
-          </div>
-          <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base mb-2">
-            ✨ Introduced AI-powered event planning tools
+            🌟 Professional Kitchen Rental Facilities
           </div>
           <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base">
-            ✨ Expanded our team to 50+ event professionals
+            🌟 Premium Event Equipment Hiring
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-20">
           <div className="image-wrapper rounded-lg h-20 md:h-44 lg:h-60">
             <img
               src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069"
-              alt="Corporate Events"
+              alt="Event Management"
               loading="lazy"
             />
           </div>
           <div className="image-wrapper rounded-lg h-20 md:h-44 lg:h-60">
             <img
               src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2070"
-              alt="Tech Innovation"
+              alt="Professional Services"
               loading="lazy"
             />
           </div>
@@ -71,35 +79,35 @@ const timelineData = [
     ),
   },
   {
-    title: "2022",
+    title: "1995",
     content: (
       <div>
         <p className="text-gray-300 text-sm md:text-base font-normal mb-8">
-          Our foundation year, where we set out to revolutionize the event management industry:
+          Our journey began in Pampady town, Kottayam, starting as a humble catering unit with a vision for excellence:
         </p>
         <div className="mb-8">
           <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base mb-2">
-            🌟 Established E&S Website
+            ⭐ Established E&S Decorations
           </div>
           <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base mb-2">
-            🌟 First major corporate partnership
+            ⭐ Premium Catering Services
           </div>
           <div className="flex gap-2 items-center text-gray-300 text-sm md:text-base">
-            🌟 Award for Most Innovative Event Startup
+            ⭐ Event Essentials & Equipment
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-20">
           <div className="image-wrapper rounded-lg h-20 md:h-44 lg:h-60">
             <img
               src="https://images.unsplash.com/photo-1515187029135-18ee286d815b?q=80&w=2070"
-              alt="Company Launch"
+              alt="Company Foundation"
               loading="lazy"
             />
           </div>
           <div className="image-wrapper rounded-lg h-20 md:h-44 lg:h-60">
             <img
               src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2070"
-              alt="First Event"
+              alt="Early Days"
               loading="lazy"
             />
           </div>
@@ -136,8 +144,8 @@ const AboutSection = () => {
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Journey</h2>
           <p className="text-lg md:text-xl text-gray-300 max-w-3xl mx-auto">
-            From our humble beginnings to becoming a leading event management company, 
-            here's how we've been transforming visions into unforgettable experiences.
+            From our humble beginnings in Pampady, Kottayam to becoming Kerala's trusted name in event management,
+            discover how we've been transforming celebrations into unforgettable experiences since 1995.
           </p>
         </motion.div>
         <Timeline data={timelineData} />
