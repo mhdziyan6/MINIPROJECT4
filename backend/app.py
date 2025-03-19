@@ -18,9 +18,13 @@ from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
 import logging
 
-
 # Load environment variables
 load_dotenv()
+
+# Constants
+SECRET_KEY = os.getenv("SECRET_KEY", "miniproject")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_HOURS = 24  # Token expires after 24 hours
 
 # FastAPI Instance
 app = FastAPI()
@@ -43,6 +47,8 @@ contacts_collection = db["contacts"]
 admins_collection = db["admins"]
 faqs_collection = db["faqs"]
 latest_works_collection = db["latest_works"]
+job_applications_collection = db["job_applications"]
+job_listings_collection = db["job_listings"]  # New collection for job listings
 
 load_dotenv()  # Load environment variables
 
@@ -89,7 +95,28 @@ class LatestWork(BaseModel):
     thumbnail: str
     category: str
 
-# Add the ReplySchema class
+# Job Listing Model
+class JobListing(BaseModel):
+    id: str
+    title: str
+    description: str
+    requirements: List[str]
+    type: str
+    icon: str = "Users"  # Default icon
+    isActive: bool = True
+
+# Job Application Model
+class JobApplication(BaseModel):
+    jobId: str
+    name: str
+    email: str
+    phone: str
+    experience: str
+    address: str | None = None
+    resume: str | None = None
+    status: str = "pending"  # pending, approved, rejected
+    appliedDate: str
+
 class ReplySchema(BaseModel):
     plain_text_body: str
     html_body: str
@@ -403,4 +430,117 @@ async def update_admin(admin_id: str, admin_update: AdminUpdate):
         raise HTTPException(status_code=400, detail="Invalid admin ID")
     except Exception as e:
         print(f"Error updating admin: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Job Listings Endpoints
+@app.get("/job-listings")
+async def get_job_listings():
+    try:
+        listings = await job_listings_collection.find().to_list(length=None)
+        # Convert ObjectId to string for each listing
+        for listing in listings:
+            listing["_id"] = str(listing["_id"])
+        return listings
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/job-listings")
+async def create_job_listing(listing: JobListing):
+    try:
+        result = await job_listings_collection.insert_one(listing.dict())
+        if result.inserted_id:
+            created_listing = await job_listings_collection.find_one(
+                {"_id": result.inserted_id}
+            )
+            created_listing["_id"] = str(created_listing["_id"])
+            return created_listing
+        raise HTTPException(status_code=500, detail="Failed to create job listing")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.put("/job-listings/{listing_id}")
+async def update_job_listing(listing_id: str, listing: JobListing):
+    try:
+        result = await job_listings_collection.update_one(
+            {"_id": ObjectId(listing_id)},
+            {"$set": listing.dict()}
+        )
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Job listing not found")
+        updated_listing = await job_listings_collection.find_one(
+            {"_id": ObjectId(listing_id)}
+        )
+        updated_listing["_id"] = str(updated_listing["_id"])
+        return updated_listing
+    except errors.InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid listing ID")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.delete("/job-listings/{listing_id}")
+async def delete_job_listing(listing_id: str):
+    try:
+        result = await job_listings_collection.delete_one(
+            {"_id": ObjectId(listing_id)}
+        )
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Job listing not found")
+        return {"message": "Job listing deleted successfully"}
+    except errors.InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid listing ID")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Job Applications Endpoints
+@app.get("/job-applications")
+async def get_job_applications():
+    try:
+        applications = await job_applications_collection.find().to_list(length=None)
+        # Convert ObjectId to string for each application
+        for app in applications:
+            app["_id"] = str(app["_id"])
+        return applications
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/job-applications")
+async def submit_job_application(application: JobApplication):
+    try:
+        # Add current date to application
+        application_dict = application.dict()
+        application_dict["appliedDate"] = datetime.datetime.now().isoformat()
+        
+        # Insert application into database
+        result = await job_applications_collection.insert_one(application_dict)
+        
+        if result.inserted_id:
+            # Return the created application with string ID
+            created_application = await job_applications_collection.find_one(
+                {"_id": result.inserted_id}
+            )
+            created_application["_id"] = str(created_application["_id"])
+            return created_application
+        
+        raise HTTPException(status_code=500, detail="Failed to submit application")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.patch("/job-applications/{application_id}/status")
+async def update_application_status(application_id: str, status: str):
+    try:
+        if status not in ["approved", "rejected"]:
+            raise HTTPException(status_code=400, detail="Invalid status")
+            
+        result = await job_applications_collection.update_one(
+            {"_id": ObjectId(application_id)},
+            {"$set": {"status": status}}
+        )
+        
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Application not found")
+            
+        return {"message": f"Application {status} successfully"}
+    except errors.InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid application ID")
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

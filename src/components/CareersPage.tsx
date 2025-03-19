@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChefHat, Camera, Users, X } from 'lucide-react';
+import axios from 'axios';
 import Navbar from './Navbar';
 import { BackgroundBeams } from './ui/background-beams';
 
@@ -23,6 +24,11 @@ const CareersPage = () => {
     phone: '',
     experience: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
 
   const jobs = [
     {
@@ -63,17 +69,43 @@ const CareersPage = () => {
     }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    setSelectedJob(null);
-    setFormData({
-      jobId: '',
-      name: '',
-      email: '',
-      phone: '',
-      experience: '',
-    });
+    setIsSubmitting(true);
+    setSubmitStatus({ type: null, message: '' });
+
+    try {
+      const applicationData = {
+        ...formData,
+        status: 'pending',
+        appliedDate: new Date().toISOString()
+      };
+
+      const response = await axios.post('http://127.0.0.1:8000/job-applications', applicationData);
+
+      if (response.status === 200) {
+        setSubmitStatus({
+          type: 'success',
+          message: 'Application submitted successfully! We will contact you soon.'
+        });
+        setSelectedJob(null);
+        setFormData({
+          jobId: '',
+          name: '',
+          email: '',
+          phone: '',
+          experience: '',
+        });
+      }
+    } catch (error) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to submit application. Please try again.'
+      });
+      console.error('Error submitting application:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -170,6 +202,14 @@ const CareersPage = () => {
               <h2 className="text-2xl font-bold mb-4">
                 Apply for {jobs.find(j => j.id === selectedJob)?.title}
               </h2>
+
+              {submitStatus.type && (
+                <div className={`mb-4 p-3 rounded-lg ${
+                  submitStatus.type === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                }`}>
+                  {submitStatus.message}
+                </div>
+              )}
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -255,9 +295,10 @@ const CareersPage = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
-                  Submit Application
+                  {isSubmitting ? 'Submitting...' : 'Submit Application'}
                 </motion.button>
               </form>
             </motion.div>
