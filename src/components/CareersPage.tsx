@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChefHat, Camera, Users, X } from 'lucide-react';
 import axios from 'axios';
 import Navbar from './Navbar';
 import { BackgroundBeams } from './ui/background-beams';
+
+interface JobListing {
+  _id: string;
+  id: string;
+  title: string;
+  description: string;
+  requirements: string[];
+  type: string;
+  icon: string;
+  isActive: boolean;
+}
 
 interface JobApplication {
   jobId: string;
@@ -17,6 +28,9 @@ interface JobApplication {
 
 const CareersPage = () => {
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  const [jobs, setJobs] = useState<JobListing[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState<JobApplication>({
     jobId: '',
     name: '',
@@ -30,44 +44,37 @@ const CareersPage = () => {
     message: string;
   }>({ type: null, message: '' });
 
-  const jobs = [
-    {
-      id: 'chef',
-      title: 'Permanent Chef',
-      icon: ChefHat,
-      description: 'Join our culinary team and create extraordinary dining experiences.',
-      requirements: [
-        'Minimum 5 years of professional cooking experience',
-        'Expertise in various cuisines',
-        'Strong leadership and team management skills',
-        'Food safety certification'
-      ]
-    },
-    {
-      id: 'cameraman',
-      title: 'Permanent Cameraman',
-      icon: Camera,
-      description: 'Capture beautiful moments and create lasting memories through your lens.',
-      requirements: [
-        'Professional photography/videography experience',
-        'Proficiency with modern camera equipment',
-        'Portfolio of event photography',
-        'Excellent communication skills'
-      ]
-    },
-    {
-      id: 'catering',
-      title: 'Catering Boys (On-Demand)',
-      icon: Users,
-      description: 'Be part of our dynamic team delivering exceptional service at events.',
-      requirements: [
-        'Previous experience in catering or hospitality',
-        'Flexible schedule availability',
-        'Strong customer service skills',
-        'Team player mentality'
-      ]
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/job-listings');
+        // Filter only active jobs
+        const activeJobs = response.data.filter((job: JobListing) => job.isActive);
+        setJobs(activeJobs);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching jobs:', err);
+        setError('Failed to load job listings. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
+
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'ChefHat':
+        return ChefHat;
+      case 'Camera':
+        return Camera;
+      case 'Users':
+        return Users;
+      default:
+        return Users;
     }
-  ];
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,6 +121,17 @@ const CareersPage = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <Navbar />
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
@@ -133,45 +151,58 @@ const CareersPage = () => {
             </p>
           </motion.div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 pb-20">
-            {jobs.map((job, index) => (
-              <motion.div
-                key={job.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="relative group"
-              >
-                <div className="p-6 rounded-xl bg-neutral-900/50 border border-neutral-800 hover:border-neutral-700 transition-colors">
-                  <job.icon className="w-10 h-10 text-blue-500 mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
-                  <p className="text-neutral-400 mb-4">{job.description}</p>
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-neutral-300 mb-2">Requirements:</h4>
-                    <ul className="space-y-2">
-                      {job.requirements.map((req, i) => (
-                        <li key={i} className="text-sm text-neutral-400 flex items-start">
-                          <span className="text-blue-500 mr-2">•</span>
-                          {req}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+          {error ? (
+            <div className="text-center text-red-500 py-10">
+              {error}
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="text-center text-neutral-400 py-10">
+              No job openings available at the moment.
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 pb-20">
+              {jobs.map((job, index) => {
+                const IconComponent = getIconComponent(job.icon);
+                return (
+                  <motion.div
+                    key={job._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -10 }}
+                    className="group cursor-pointer"
                     onClick={() => {
-                      setSelectedJob(job.id);
+                      setSelectedJob(job._id);
                       setFormData({ ...formData, jobId: job.id });
                     }}
-                    className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-lg font-medium hover:opacity-90 transition-opacity"
                   >
-                    Apply Now
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                    <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl overflow-hidden hover:border-neutral-700 transition-colors">
+                      <div className="p-6">
+                        <IconComponent className="w-10 h-10 text-blue-500 mb-4" />
+                        <h3 className="text-xl font-semibold mb-2">{job.title}</h3>
+                        <p className="text-neutral-400 mb-4">{job.description}</p>
+                        <div className="mb-6">
+                          <h4 className="text-sm font-semibold text-neutral-300 mb-2">Requirements:</h4>
+                          <ul className="space-y-2">
+                            {job.requirements.map((req, i) => (
+                              <li key={i} className="text-sm text-neutral-400 flex items-start">
+                                <span className="text-blue-500 mr-2">•</span>
+                                {req}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className="flex justify-between items-center text-sm text-neutral-500">
+                          <span>{job.type}</span>
+                          <span className="text-green-500">Active</span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -200,7 +231,7 @@ const CareersPage = () => {
               </button>
               
               <h2 className="text-2xl font-bold mb-4">
-                Apply for {jobs.find(j => j.id === selectedJob)?.title}
+                Apply for {jobs.find(j => j._id === selectedJob)?.title}
               </h2>
 
               {submitStatus.type && (
@@ -264,7 +295,7 @@ const CareersPage = () => {
                   />
                 </div>
 
-                {selectedJob === 'catering' ? (
+                {formData.jobId === 'catering' ? (
                   <div>
                     <label className="block text-sm font-medium text-neutral-300 mb-1">
                       Address

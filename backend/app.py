@@ -21,6 +21,19 @@ import logging
 # Load environment variables
 load_dotenv()
 
+# Email Configuration
+email_conf = ConnectionConfig(
+    MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
+    MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
+    MAIL_FROM=os.getenv("MAIL_FROM"),
+    MAIL_PORT=int(os.getenv("MAIL_PORT", "587")),
+    MAIL_SERVER=os.getenv("MAIL_SERVER"),
+    MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"),
+    MAIL_TLS=True,
+    MAIL_SSL=False,
+    USE_CREDENTIALS=True
+)
+
 # Constants
 SECRET_KEY = os.getenv("SECRET_KEY", "miniproject")
 ALGORITHM = "HS256"
@@ -49,16 +62,6 @@ faqs_collection = db["faqs"]
 latest_works_collection = db["latest_works"]
 job_applications_collection = db["job_applications"]
 job_listings_collection = db["job_listings"]  # New collection for job listings
-
-load_dotenv()  # Load environment variables
-
-MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-MAIL_FROM = os.getenv("MAIL_FROM")
-MAIL_PORT = os.getenv("MAIL_PORT")
-MAIL_SERVER = os.getenv("MAIL_SERVER")
-MAIL_TLS = os.getenv("MAIL_TLS") == "True"  # Convert string to boolean
-MAIL_SSL = os.getenv("MAIL_SSL") == "True"
 
 # Models
 class EmailSchema(BaseModel):
@@ -338,31 +341,31 @@ async def reply_to_inquiry(inquiry_id: str, reply: ReplySchema):
         if not recipient_email:
             raise HTTPException(status_code=400, detail="Inquiry has no associated email")
 
-        # ✅ Use the admin's custom reply from the request
+        # Initialize FastMail
+        fm = FastMail(email_conf)
+
+        # Create message schema
         message = MessageSchema(
             subject="Reply to Your Inquiry - E&S Decorations",
-            recipients=[recipient_email],  
-            body=reply.html_body,  # Use custom HTML message
+            recipients=[recipient_email],
+            body=reply.html_body,
             subtype="html",
-            alternatives=[(reply.plain_text_body, "plain")]  # Use custom plain text
+            alternatives=[(reply.plain_text_body, "plain")]
         )
 
-        fm = FastMail(email_conf)
-        await fm.send_message(message, template_name=None)
+        # Send email
+        await fm.send_message(message)
 
-        # ✅ Update inquiry status to solved
+        # Update inquiry status
         await contacts_collection.update_one(
             {"_id": ObjectId(inquiry_id)},
             {"$set": {"is_solved": True}}
         )
 
         return {"message": "Reply sent successfully"}
-
-    except HTTPException as http_err:
-        raise http_err
     except Exception as e:
         logging.error(f"Error sending reply: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Server Error")
+        raise HTTPException(status_code=500, detail="Failed to send reply")
 
 # Admin Login with JWT
 @app.post("/admin/login", response_model=Token)
