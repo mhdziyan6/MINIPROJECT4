@@ -12,8 +12,15 @@ import datetime
 from bson import ObjectId, errors
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from typing import List
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from fastapi.security import OAuth2PasswordBearer
+from dotenv import load_dotenv
+import logging
 
+
+# Load environment variables
+load_dotenv()
 
 # FastAPI Instance
 app = FastAPI()
@@ -37,17 +44,15 @@ admins_collection = db["admins"]
 faqs_collection = db["faqs"]
 latest_works_collection = db["latest_works"]
 
-# Email Configuration
-email_conf = ConnectionConfig(
-    MAIL_USERNAME = "your_email@gmail.com",  # Replace with your email
-    MAIL_PASSWORD = "your_app_password",      # Replace with your app password
-    MAIL_FROM = "your_email@gmail.com",       # Replace with your email
-    MAIL_PORT = 587,
-    MAIL_SERVER = "smtp.gmail.com",
-    MAIL_STARTTLS = True,
-    MAIL_SSL_TLS = False,
-    USE_CREDENTIALS = True
-)
+load_dotenv()  # Load environment variables
+
+MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+MAIL_FROM = os.getenv("MAIL_FROM")
+MAIL_PORT = os.getenv("MAIL_PORT")
+MAIL_SERVER = os.getenv("MAIL_SERVER")
+MAIL_TLS = os.getenv("MAIL_TLS") == "True"  # Convert string to boolean
+MAIL_SSL = os.getenv("MAIL_SSL") == "True"
 
 # Models
 class EmailSchema(BaseModel):
@@ -285,37 +290,49 @@ async def solve_inquiry(inquiry_id: str):
 
 # Send Reply to Inquiry
 @app.post("/inquiries/{inquiry_id}/reply")
-async def reply_to_inquiry(inquiry_id: str, email_data: EmailSchema):
+async def reply_to_inquiry(inquiry_id: str, reply: ReplySchema):
     try:
-        # Find the inquiry
+        # ✅ Validate ObjectId
+        if not ObjectId.is_valid(inquiry_id):
+            raise HTTPException(status_code=400, detail="Invalid inquiry ID format")
+
+        # ✅ Find the inquiry in the database
         inquiry = await contacts_collection.find_one({"_id": ObjectId(inquiry_id)})
         if not inquiry:
             raise HTTPException(status_code=404, detail="Inquiry not found")
 
-        # Create the email message
+        # ✅ Ensure email field exists
+        recipient_email = inquiry.get("email")
+        if not recipient_email:
+            raise HTTPException(status_code=400, detail="Inquiry has no associated email")
+
+        # ✅ Use the admin's custom reply from the request
         message = MessageSchema(
             subject="Reply to Your Inquiry - E&S Decorations",
-            recipients=[inquiry["email"]],
-            body=email_data.message,
-            subtype="html"
+            recipients=[recipient_email],  
+            body=reply.html_body,  # Use custom HTML message
+            subtype="html",
+            alternatives=[(reply.plain_text_body, "plain")]  # Use custom plain text
         )
 
-        # Initialize FastMail
         fm = FastMail(email_conf)
-        
-        # Send the email
-        await fm.send_message(message)
+        await fm.send_message(message, template_name=None)
 
-        # Update inquiry status to solved
+        # ✅ Update inquiry status to solved
         await contacts_collection.update_one(
             {"_id": ObjectId(inquiry_id)},
             {"$set": {"is_solved": True}}
         )
 
         return {"message": "Reply sent successfully"}
+
+    except HTTPException as http_err:
+        raise http_err
     except Exception as e:
-        print(f"Error sending reply: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logging.error(f"Error sending reply: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
+
 
 # Admin Login with JWT
 @app.post("/admin/login", response_model=Token)

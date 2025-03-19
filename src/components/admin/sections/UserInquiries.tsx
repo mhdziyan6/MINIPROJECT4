@@ -56,16 +56,23 @@ const UserInquiries = () => {
 
   const handleSendMessage = async () => {
     if (!replyMessage.trim() || !selectedInquiry) return;
-
+  
     setSending(true);
     setError(null);
     setSuccess(null);
-
+  
     try {
-      const response = await axios.post(`${API_BASE_URL}/${selectedInquiry.id}/reply`, {
-        message: replyMessage
-      });
-
+      const emailData = {
+        plain_text_body: replyMessage,  // Send the admin's reply
+        html_body: `<p style="font-family: Arial, sans-serif; color: #333;">${replyMessage.replace(/\n/g, '<br>')}</p>` // Convert new lines to HTML <br>
+      };
+  
+      const response = await axios.post(
+        `${API_BASE_URL}/${selectedInquiry.id}/reply`,
+        emailData,
+        { headers: { "Content-Type": "application/json" } }
+      );
+  
       if (response.status === 200) {
         setSuccess("Reply sent successfully");
         setReplyMessage('');
@@ -78,6 +85,7 @@ const UserInquiries = () => {
       setSending(false);
     }
   };
+  
 
   return (
     <div className="max-w-6xl mx-auto">
