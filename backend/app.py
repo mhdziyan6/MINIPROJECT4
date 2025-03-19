@@ -29,8 +29,8 @@ email_conf = ConnectionConfig(
     MAIL_PORT=int(os.getenv("MAIL_PORT", "587")),
     MAIL_SERVER=os.getenv("MAIL_SERVER"),
     MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"),
-    MAIL_TLS=True,
-    MAIL_SSL=False,
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
     USE_CREDENTIALS=True
 )
 
